@@ -50,17 +50,47 @@ We use the [IndRegBias](https://arxiv.org/abs/2601.06477) dataset consisting of 
 Additionally, **500 newly collected YouTube comments** (balanced RB/NRB) are used for out-of-distribution evaluation.
 
 ---
+## Project Structure
 
+The codebase is organized into two self-contained production execution modules sitting directly at the repository root. Shared parameter definitions and logical parsing utility functions are imported directly within each folder from their respective local files:
 
-## Installation
+```text
+Annotating-Indian-Regional-Biases-using-Large-Language-Models-Evaluation-and-Analysis/
+├── data/
+|   ├── Dataset_final.csv       # 25k Master training dataset (gitignored)
+│   └── sample_500.csv          # Target 500-comment out-of-distribution evaluation data
+│
+├── weights/
+│   └── {model_alias}_best/     # Automatically isolated production adapter checkpoints
+│
+├── Zero-Shot/                  # Pipeline 1: Context-Free Baseline Generation
+│   ├── config.py               # Zero-shot specific model registries and constants
+│   ├── utils.py                # Regex extraction, reasoning-trace stripping & CSV repair
+│   └── run_inference.py        # Master zero-shot inference engine runner
+│
+├── Fine-Tune/                  # Pipeline 2: Parameter-Efficient Fine-Tuning (PEFT)
+│   ├── config.py               # Fine-tuning parameters, LoRA ranks, and system prompts
+│   ├── utils.py                # Environment initializers and chat template formatters
+│   ├── train_cv.py             # 5-Fold Stratified CV engine (Saves absolute best fold)
+│   └── inference_test.py       # Evaluation runner evaluating the 500-comment test sample
+│
+├── requirements.txt            # Operational environment dependencies
+└── README.md                   # Repository documentation
+```
 
+##  Installation and Environment Setup
+
+### 1. Clone and Install Dependencies
 ```bash
-git clone https://github.com/<your-username>/IndRegBias-LLM-Annotation.git
-cd IndRegBias-LLM-Annotation
+git clone [https://github.com/debby123p/Annotating-Indian-Regional-Biases-using-Large-Language-Models-Evaluation-and-Analysis.git](https://github.com/debby123p/Annotating-Indian-Regional-Biases-using-Large-Language-Models-Evaluation-and-Analysis.git)
+cd Annotating-Indian-Regional-Biases-using-Large-Language-Models-Evaluation-and-Analysis
 pip install -r requirements.txt
 ```
 
-### Hardware Requirements
+### 2. Data Access Note
+The raw master training dataset (Dataset_final.csv) is not hosted in this public repository to protect data distribution rights. To replicate our benchmark findings, please request access directly from the paper's authors via the IndRegBias arXiv Link. Once acquired, create a local folder named data/ at the repository root and place your data files inside it.
+
+### 3.Hardware Requirements
 
 - **GPU**: NVIDIA H200 (~141 GB VRAM) or equivalent
 - Fine-tuning uses 16-bit BFloat16 precision with LoRA to reduce memory requirements
@@ -70,26 +100,38 @@ pip install -r requirements.txt
 ## Usage
 
 ### 1. Zero-Shot Evaluation
+To generate prompt-only predictions on a target dataset sample, change to the Zero-Shot directory and initialize the runtime inference pipeline wrapper:
 
 ```bash
-bash scripts/run_zero_shot.sh --model qwen_3_8b --data_path data/raw/indregbias.csv
+cd Zero-Shot
+python run_inference.py \
+    --model qwen-8b \
+    --data_path ../data/sample_500.csv \
+    --output ../results/zero_shot/qwen_8b_baseline_results.csv \
+    --gpu_id 0
 ```
+To recover and pick up from where you left off after an unexpected server time-out or runtime disconnection, append the --resume flag parameter to skip pre-annotated index boundaries.
 
 ### 2. Fine-Tuning with LoRA
+To run full parameter-efficient training splits over the 25k text comment training database, navigate to the Fine-Tune folder. The validation engine isolates variance across data splits and saves the optimal fold checkpoint weights to your /weights storage path tree:
 
 ```bash
-bash scripts/run_fine_tuning.sh \
-  --model qwen_3_8b \
-  --config configs/lora_config.yaml \
-  --fold 1
+cd Fine-Tune
+python train_cv.py \
+    --model mixtral-moe \
+    --data_path ../data/Dataset_final.csv \
+    --gpu_id 1
 ```
 
 ### 3. YouTube 500 Evaluation
+Once optimal adapter boundaries have been isolated and written out by Phase 1, call the pure-inference execution script to test predictions over your custom out-of-distribution YouTube evaluations sample:
 
 ```bash
-bash scripts/run_youtube_eval.sh \
-  --model_checkpoint results/fine_tuning/qwen_3_8b/best_fold/ \
-  --data_path data/youtube_500/
+cd Fine-Tune
+python inference_test.py \
+    --model mixtral-moe \
+    --test_path ../data/sample_500.csv \
+    --gpu_id 1
 ```
 
 ---
@@ -135,12 +177,6 @@ where $p_o$ is observed agreement and $p_e$ is expected chance agreement.
   year={2026}
 }
 ```
-
----
-
-## License
-
-This project is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
