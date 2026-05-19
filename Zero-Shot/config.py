@@ -1,7 +1,7 @@
 import os
 
 # Central Zero-Shot Model mapping aliases to HuggingFace IDs
-MODEL_ZOO = {
+MODEL_LIST = {
     "qwen-8b": "Qwen/Qwen3-8B",
     "qwen-32b": "Qwen/Qwen3-32B",
     "dseek-14b": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
