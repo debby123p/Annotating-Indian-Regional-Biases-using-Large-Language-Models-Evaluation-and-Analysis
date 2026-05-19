@@ -8,8 +8,9 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from sklearn.metrics import cohen_kappa_score, classification_report
 
-from src.zero_shot.config import MODEL_ZOO, MAX_SEQ_LENGTH, MAX_NEW_TOKENS
-from src.zero_shot.utils import (
+# Direct local directory module layout configuration lookups
+from config import MODEL_LIST, MAX_SEQ_LENGTH, MAX_NEW_TOKENS
+from utils import (
     setup_env,
     build_chat_prompts,
     build_gemma_prompts,
@@ -34,7 +35,7 @@ def run_zero_shot_pipeline(model_alias, data_path, output_path, batch_size, back
     out_file.parent.mkdir(parents=True, exist_ok=True)
     backup_file = out_file.parent / f"{out_file.stem}_backup.csv"
 
-    # PROGRESS RESUMPTION STATE VERIFICATION 
+    # PROGRESS RESUMPTION STATE VERIFICATION
     if resume and out_file.exists():
         print(f"Found existing tracking state file: {out_file}. Verifying progress...")
         try:
@@ -65,7 +66,7 @@ def run_zero_shot_pipeline(model_alias, data_path, output_path, batch_size, back
     if start_index >= len(df):
         print("Dataset is already fully annotated.")
     else:
-        # --- MODEL INITIALIZATION ENVIRONMENT ---
+        # MODEL INITIALIZATION ENVIRONMENT
         print(f"Loading Base Tokenizer Framework...")
         tokenizer = AutoTokenizer.from_pretrained(model_hf_id, padding_side="left", trust_remote_code=True)
         if tokenizer.pad_token is None:
@@ -171,7 +172,6 @@ def run_zero_shot_pipeline(model_alias, data_path, output_path, batch_size, back
             f.write(f"\nCohen's Kappa Performance Score (κ): {kappa:.4f}\n")
 
 
-# Command Line Argument Context Parsing Block
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Unified Multi-Model Zero-Shot Inference Benchmark Study Pipeline Engine",
@@ -221,12 +221,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Environmental setups rules initializing
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
     setup_env(str(args.gpu_id))
     print_gpu_info(0)
 
-    # Core system execution invocation pipeline run entry
     run_zero_shot_pipeline(
         model_alias=args.model,
         data_path=args.data_path,
