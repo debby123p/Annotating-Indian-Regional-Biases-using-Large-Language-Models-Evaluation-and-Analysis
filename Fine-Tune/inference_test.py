@@ -31,7 +31,7 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
         print("Please verify that your cross-validation script executed successfully first.")
         return
 
-    # --- LOAD TARGET EVALUATION DATASET ---
+    # LOAD TARGET EVALUATION DATASET
     print(f"Loading test evaluation sample from: {test_path}")
     df = pd.read_csv(test_path)
     
@@ -39,7 +39,7 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
     df["comment"] = df["comment"].astype(str).str.strip()
     df = df.dropna(subset=["comment"]).reset_index(drop=True)
     
-    # --- LOAD CONFIGURATION AND MODEL LAYERS ---
+    # LOAD CONFIGURATION AND MODEL LAYERS 
     print(f"Loading tokenizer framework configuration...")
     tokenizer = AutoTokenizer.from_pretrained(model_hf_id, trust_remote_code=True)
     if tokenizer.pad_token is None:
@@ -58,7 +58,7 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
     model = PeftModel.from_pretrained(base_model, str(adapter_path))
     model.eval()
 
-    # --- BATCH INFERENCE LOOP Engine ---
+    # BATCH INFERENCE LOOP Engine
     print(f"Executing batch inference array over {len(df)} target sequences (Batch Size: 16)...")
     predictions = []
     raw_responses = []
@@ -103,7 +103,7 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
             raw_responses.append(raw_output)
             predictions.append(parsed_label)
 
-    # --- EXPORT RESULTS AND METRICS ---
+    # EXPORT RESULTS AND METRICS
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
