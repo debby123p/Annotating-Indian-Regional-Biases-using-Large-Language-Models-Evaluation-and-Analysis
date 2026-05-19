@@ -5,7 +5,7 @@ import re
 import numpy as np
 import torch
 from transformers import set_seed
-from src.zero_shot.config import SYSTEM_PROMPT, SEED
+from config import SYSTEM_PROMPT, SEED
 
 
 # Configure global hardware environments and deterministic execution seeds.
@@ -79,7 +79,7 @@ def extract_response_text(full_output):
 
 # Line-by-line CSV parser to repair formatting corruption issues.
 def repair_csv(file_path):
-    print(f"⚠️ Detected corrupted CSV at {file_path}. Attempting repair...")
+    print(f" Detected corrupted CSV at {file_path}. Attempting repair...")
     valid_rows = []
     try:
         with open(file_path, "r", encoding="utf-8", errors="replace") as f:
@@ -91,11 +91,11 @@ def repair_csv(file_path):
             with open(file_path, "w", encoding="utf-8", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerows(valid_rows)
-            print("✅ Repair complete.")
+            print(" Repair complete.")
             return True
         return False
     except Exception as e:
-        print(f"❌ Repair failed: {e}")
+        print(f" Repair failed: {e}")
         return False
 
 
