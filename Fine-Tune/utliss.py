@@ -5,7 +5,7 @@ import random
 import numpy as np
 import torch
 from transformers import set_seed
-from src.config import SYSTEM_PROMPT, SEED
+from config import SYSTEM_PROMPT, SEED
 
 
 # Configure global hardware runtimes and deterministic seeds.
@@ -19,7 +19,7 @@ def setup_env(gpu_id="0"):
 # Build standardized chat template message dictionaries for training or inference.
 #
 # Args:
-#    row     - Dict or Pandas series containing 'comment' and optionally 'level-1' keys
+#    row     - Dict or Pandas series containing 'comment' and 'level-1' keys
 #    is_test - If True, skips appending the assistant gold-label role dictionary
 def format_example(row, is_test=False):
     instruction = "Annotate the following comment as Regional Bias (1) or Non-Regional Bias (0)."
