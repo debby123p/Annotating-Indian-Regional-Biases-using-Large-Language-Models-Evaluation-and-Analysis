@@ -9,19 +9,15 @@ from sklearn.metrics import classification_report, cohen_kappa_score
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.config import MODEL_ZOO, MAX_SEQ_LENGTH, MAX_NEW_TOKENS_INFERENCE
-from src.utils import setup_env, format_example, extract_label, print_gpu_info
+# Direct local module configuration lookups
+from config import MODEL_LIST, MAX_SEQ_LENGTH, MAX_NEW_TOKENS_INFERENCE
+from utils import setup_env, format_example, extract_label, print_gpu_info
 
 
 # Production Inference and Evaluation Pipeline.
-#
-# Args:
-#    model_alias - Shorthand key matching the config.py MODEL_ZOO dictionary
-#    test_path   - Path to the 500-comment evaluation sample target CSV file
-#    output_dir  - Directory where classification results will be saved
 def run_evaluation_inference(model_alias, test_path, output_dir):
     model_hf_id = MODEL_ZOO[model_alias]
-    adapter_path = Path("weights") / f"{model_alias}_best_adapter"
+    adapter_path = Path("../weights") / f"{model_alias}_best_adapter"
     
     print(f"\nInitialising Static Inference Pipeline for Model: {model_hf_id}")
     print(f"Targeting Production Adapter Checkpoint: {adapter_path}")
@@ -31,15 +27,11 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
         print("Please verify that your cross-validation script executed successfully first.")
         return
 
-    # LOAD TARGET EVALUATION DATASET
     print(f"Loading test evaluation sample from: {test_path}")
     df = pd.read_csv(test_path)
-    
-    # Ensure standard data formatting alignment strings are enforced
     df["comment"] = df["comment"].astype(str).str.strip()
     df = df.dropna(subset=["comment"]).reset_index(drop=True)
     
-    # LOAD CONFIGURATION AND MODEL LAYERS 
     print(f"Loading tokenizer framework configuration...")
     tokenizer = AutoTokenizer.from_pretrained(model_hf_id, trust_remote_code=True)
     if tokenizer.pad_token is None:
@@ -58,12 +50,10 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
     model = PeftModel.from_pretrained(base_model, str(adapter_path))
     model.eval()
 
-    # BATCH INFERENCE LOOP Engine
     print(f"Executing batch inference array over {len(df)} target sequences (Batch Size: 16)...")
     predictions = []
     raw_responses = []
 
-    # Safe inference loop structure running across test frames 
     for i in tqdm(range(0, len(df), 16), desc=f"Evaluating {model_alias}"):
         batch = df.iloc[i : i + 16]
         texts = []
@@ -80,7 +70,6 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
             texts, return_tensors="pt", padding=True, truncation=True, max_length=MAX_SEQ_LENGTH
         ).to(model.device)
         
-        # Guard against leftover token type configurations inside attention steps
         inputs.pop("token_type_ids", None)
 
         with torch.no_grad():
@@ -91,7 +80,6 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
                 pad_token_id=tokenizer.pad_token_id,
             )
             
-        # Isolate newly generated token sequences beyond slice boundaries
         decoded_batch = tokenizer.batch_decode(
             outputs[:, inputs.input_ids.shape[1] :], skip_special_tokens=True
         )
@@ -103,7 +91,6 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
             raw_responses.append(raw_output)
             predictions.append(parsed_label)
 
-    # EXPORT RESULTS AND METRICS
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
@@ -114,7 +101,6 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
     df.to_csv(results_csv_file, index=False)
     print(f"\nPredictions exported successfully to: {results_csv_file}")
 
-    # Generate metric evaluation readouts if ground truth columns exist
     if "level-1" in df.columns:
         df["level-1"] = pd.to_numeric(df["level-1"], errors="coerce").fillna(0).astype(int)
         y_true = df["level-1"].tolist()
@@ -131,7 +117,6 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
         print(f"  Cohen's Kappa (κ): {kappa:.4f}")
         print("-" * 50)
         
-        # Save verification log summary metrics file out to file tree
         metrics_txt_file = output_path / f"{model_alias}_sample_500_metrics.txt"
         with open(metrics_txt_file, "w", encoding="utf-8") as f:
             f.write(f"MODEL BENCHMARK RUN: {model_hf_id}\n")
@@ -141,7 +126,6 @@ def run_evaluation_inference(model_alias, test_path, output_dir):
         print(f"Performance report summary saved to: {metrics_txt_file}")
 
 
-# CLI Arguments Entry Point Block
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Unified Downstream Sample Evaluation Inference Engine",
@@ -152,7 +136,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
         choices=list(MODEL_ZOO.keys()),
-        help="Target model alias lookup shorthand key configured inside src/config.py",
+        help="Target model alias lookup shorthand key configured inside config.py",
     )
     parser.add_argument(
         "--test_path",
@@ -163,7 +147,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="results/evaluation_runs",
+        default="../results/evaluation_runs",
         help="Directory output target path configuration mapping where raw scores write out",
     )
     parser.add_argument(
@@ -174,12 +158,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Hardware initialization configuration rules
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
     setup_env(str(args.gpu_id))
     print_gpu_info(0)
 
-    # Core engine downstream test execution call
     run_evaluation_inference(
         model_alias=args.model,
         test_path=args.test_path,
