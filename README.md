@@ -4,7 +4,7 @@
 
 ## Overview
 
-Regional bias (RB) is a type of social bias originating from stereotypes toward particular geographical identities. This project evaluates **nine open-source LLMs** for annotating Indian regional biases across three text-writing styles: **English**, **Code-Mixed**, and **Transliterated**.
+Regional Bias is a form of social bias rooted in generalised assumptions about an individual/state/region based on their geographical identity, which is associated with its language, culture, socio-economic development, and political paradigm. This project evaluates open-source large language models on their ability to annotate the social comments as regional bias (RB) or non-regional bias (NRB), where the comments belong to three text-writing styles: **English**, **Code-Mixed**, and **Transliterated**.
 
 We assess LLMs in two settings:
 1. **Zero-shot prompting** — direct inference using chain-of-thought reasoning
@@ -15,7 +15,7 @@ We assess LLMs in two settings:
 - All LLMs show **low agreement** (κ < 0.49) in zero-shot settings
 - Fine-tuning yields **64–100%+ improvement** in annotation agreement (Cohen's κ)
 - **Mixtral-MoE** achieves the best fine-tuned agreement on IndRegBias
-- **Krutrim-2** (Indic LLM) achieves the highest κ (0.695) on newly collected YouTube comments
+- **Krutrim-2** (Indic LLM) achieves the highest κ (0.695) on newly collected set of YouTube comments
 - English comments are easiest to annotate; code-mixed and transliterated texts remain challenging
 
 ---
@@ -27,7 +27,7 @@ We assess LLMs in two settings:
 | Qwen_3_8b | Qwen-8B | 8B |
 | Qwen_3_32b | Qwen-32B | 32B |
 | DeepSeek-R1-Distill-Qwen-14B | DSeek-14B | 14B |
-| Krutrim-2-instruct | Krutrim-2 | — |
+| Krutrim-2-instruct | Krutrim-2 | 12B |
 | Mixtral-8x7B-Instruct-v0.1 | Mixtral-MoE | 8×7B |
 | LLaMa_3.1_8b | Llama-8B | 8B |
 | Mistral_Nemo_12b | MNemo-12B | 12B |
