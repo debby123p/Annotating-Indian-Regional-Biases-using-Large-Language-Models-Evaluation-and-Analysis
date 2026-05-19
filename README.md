@@ -167,21 +167,7 @@ where $p_o$ is observed agreement and $p_e$ is expected chance agreement.
 
 ---
 
-## Citation
-
-```bibtex
-@article{panda2026indregbias,
-  title={IndRegBias: A Dataset for Studying Indian Regional Biases in English and Code-Mixed Social Media Comments},
-  author={Panda, Debasmita and Anil, Akash and Shukla, Neelesh Kumar},
-  journal={arXiv preprint arXiv:2601.06477},
-  year={2026}
-}
-```
-
----
-
 ## Acknowledgments
 
 - [IndRegBias Dataset](https://arxiv.org/abs/2601.06477)
-- [LoRA: Low-Rank Adaptation](https://arxiv.org/abs/2106.09685)
-- [PEFT Library](https://github.com/huggingface/peft)
+
