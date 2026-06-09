@@ -171,3 +171,14 @@ where $p_o$ is observed agreement and $p_e$ is expected chance agreement.
 
 - [IndRegBias Dataset](https://arxiv.org/abs/2601.06477)
 
+## Citation
+
+```bash
+@article{panda2026annotating,
+  title     = {Annotating Indian Regional Biases using Large Language Models: Evaluation and Analysis},
+  author    = {Panda, Debasmita and Anil, Akash and Shukla, Neelesh Kumar},
+  journal   = {arXiv preprint arXiv:XXXX.XXXXX},
+  year      = {2026},
+  url       = {https://arxiv.org/abs/XXXX.XXXXX}
+}
+```
